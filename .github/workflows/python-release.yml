@@ -54,18 +54,6 @@ jobs:
         run: |
           pyinstaller --onefile --name "XmlProcessorCLI" --add-data "*.py;." No_Gui.py
 
-      - name: Prepare release files
-        shell: powershell
-        run: |
-          New-Item -ItemType Directory -Force -Path "release" | Out-Null
-          Copy-Item "dist/XmlProcessorGUI.exe" "release/" -Force
-          Copy-Item "dist/XmlProcessorCLI.exe" "release/" -Force
-
-      - name: Create ZIP package
-        shell: powershell
-        run: |
-          Compress-Archive -Path "release/*" -DestinationPath "XmlProcessor-windows.zip" -Force
-
       - name: Get tag name
         id: get_tag
         shell: bash
@@ -78,10 +66,12 @@ jobs:
             echo "tag_name=latest" >> $GITHUB_OUTPUT
           fi
 
-      - name: Create Release
+      - name: Create Release with both EXE files
         uses: softprops/action-gh-release@v2
         with:
-          files: XmlProcessor-windows.zip
+          files: |
+            dist/XmlProcessorGUI.exe
+            dist/XmlProcessorCLI.exe
           tag_name: ${{ steps.get_tag.outputs.tag_name }}
           name: Release ${{ steps.get_tag.outputs.tag_name }}
           draft: false

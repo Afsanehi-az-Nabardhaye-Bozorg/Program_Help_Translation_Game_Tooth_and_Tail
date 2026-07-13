@@ -46,13 +46,9 @@ jobs:
           pip install --only-binary :all: pandas numpy
           pip install PyQt5 openpyxl arabic-reshaper python-bidi pyinstaller
 
-      - name: Build GUI version (main.py)
+      - name: Build GUI executable
         run: |
           pyinstaller --onefile --windowed --name "XmlProcessorGUI" --add-data "*.py;." main.py
-
-      - name: Build Console version (No_Gui.py)
-        run: |
-          pyinstaller --onefile --name "XmlProcessorCLI" --add-data "*.py;." No_Gui.py
 
       - name: Get tag name
         id: get_tag
@@ -66,12 +62,10 @@ jobs:
             echo "tag_name=latest" >> $GITHUB_OUTPUT
           fi
 
-      - name: Create Release with both EXE files
+      - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            dist/XmlProcessorGUI.exe
-            dist/XmlProcessorCLI.exe
+          files: dist/XmlProcessorGUI.exe
           tag_name: ${{ steps.get_tag.outputs.tag_name }}
           name: Release ${{ steps.get_tag.outputs.tag_name }}
           draft: false

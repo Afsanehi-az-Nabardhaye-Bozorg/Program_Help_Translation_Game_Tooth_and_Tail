@@ -16,7 +16,6 @@ permissions:
   actions: read
 
 env:
-  # برای رفع هشدار Node 20 (اختیاری)
   ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
 
 jobs:
@@ -31,7 +30,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
-          architecture: 'x86'
+          architecture: 'x64'  # تغییر به 64 بیتی برای جلوگیری از مشکلات کامپایل
 
       - name: Cache pip packages
         uses: actions/cache@v4
@@ -44,13 +43,14 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install PyQt5 pandas openpyxl arabic-reshaper python-bidi
+          # نصب pandas از پیش کامپایل شده (wheel)
+          pip install --only-binary :all: pandas numpy
+          # نصب سایر وابستگی‌ها
+          pip install PyQt5 openpyxl arabic-reshaper python-bidi pyinstaller
 
       - name: Download icon file
         shell: powershell
         run: |
-          # آیکون را از مخزن دانلود کنید (اگر وجود دارد)
-          # در غیر این صورت، می‌توانید از یک آیکون پیش‌فرض استفاده کنید
           Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Afsanehi-az-Nabardhaye-Bozorg/Program_Help_Translation_Game_Tooth_and_Tail/main/icon.ico" -OutFile "app_icon.ico" -ErrorAction SilentlyContinue
           if (Test-Path "app_icon.ico") {
             Write-Host "Icon downloaded successfully"
@@ -68,7 +68,6 @@ jobs:
 
       - name: Build Console version (No_Gui.py)
         run: |
-          # نسخه کنسولی (بدون پنجره GUI)
           if (Test-Path "app_icon.ico") {
             pyinstaller --onefile --name "XmlProcessorCLI" --icon "app_icon.ico" --add-data "*.py;." No_Gui.py
           } else {
@@ -81,9 +80,6 @@ jobs:
           New-Item -ItemType Directory -Force -Path "release" | Out-Null
           Copy-Item "dist/XmlProcessorGUI.exe" "release/" -Force
           Copy-Item "dist/XmlProcessorCLI.exe" "release/" -Force
-          # اگر فایل README یا مستندات دارید، کپی کنید:
-          # Copy-Item "README.md" "release/" -Force
-          # Copy-Item "LICENSE" "release/" -Force
 
       - name: Create ZIP package
         shell: powershell
@@ -105,8 +101,7 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            XmlProcessor-windows.zip
+          files: XmlProcessor-windows.zip
           tag_name: ${{ steps.get_tag.outputs.tag_name }}
           name: Release ${{ steps.get_tag.outputs.tag_name }}
           draft: false

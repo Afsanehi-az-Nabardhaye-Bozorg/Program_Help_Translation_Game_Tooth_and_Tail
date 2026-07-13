@@ -30,7 +30,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
-          architecture: 'x64'  # تغییر به 64 بیتی برای جلوگیری از مشکلات کامپایل
+          architecture: 'x64'
 
       - name: Cache pip packages
         uses: actions/cache@v4
@@ -43,36 +43,16 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          # نصب pandas از پیش کامپایل شده (wheel)
           pip install --only-binary :all: pandas numpy
-          # نصب سایر وابستگی‌ها
           pip install PyQt5 openpyxl arabic-reshaper python-bidi pyinstaller
-
-      - name: Download icon file
-        shell: powershell
-        run: |
-          Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Afsanehi-az-Nabardhaye-Bozorg/Program_Help_Translation_Game_Tooth_and_Tail/main/icon.ico" -OutFile "app_icon.ico" -ErrorAction SilentlyContinue
-          if (Test-Path "app_icon.ico") {
-            Write-Host "Icon downloaded successfully"
-          } else {
-            Write-Host "Icon not found, building without icon"
-          }
 
       - name: Build GUI version (main.py)
         run: |
-          if (Test-Path "app_icon.ico") {
-            pyinstaller --onefile --windowed --name "XmlProcessorGUI" --icon "app_icon.ico" --add-data "*.py;." main.py
-          } else {
-            pyinstaller --onefile --windowed --name "XmlProcessorGUI" --add-data "*.py;." main.py
-          }
+          pyinstaller --onefile --windowed --name "XmlProcessorGUI" --add-data "*.py;." main.py
 
       - name: Build Console version (No_Gui.py)
         run: |
-          if (Test-Path "app_icon.ico") {
-            pyinstaller --onefile --name "XmlProcessorCLI" --icon "app_icon.ico" --add-data "*.py;." No_Gui.py
-          } else {
-            pyinstaller --onefile --name "XmlProcessorCLI" --add-data "*.py;." No_Gui.py
-          }
+          pyinstaller --onefile --name "XmlProcessorCLI" --add-data "*.py;." No_Gui.py
 
       - name: Prepare release files
         shell: powershell
